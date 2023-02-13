@@ -6,18 +6,18 @@ sealed class ProfitCalculatorSpec extends AnyFlatSpec {
   "Profit calculator" should "find correctly max profit days using tail recursion" in {
     val expectedProfit = CountedMaxProfitDay(1,2,2)
     val anotherExpectedProfit = CountedMaxProfitDay(3,4,8)
-    assert(getMaxProfitDays(defaultDailyPricing) == expectedProfit)
-    assert(getMaxProfitDays(anotherDailyPricing) == anotherExpectedProfit)
+    assert(getMaxProfitDay(defaultDailyPricing) == expectedProfit)
+    assert(getMaxProfitDay(anotherDailyPricing) == anotherExpectedProfit)
   }
 
   it should "find correctly max profit days with an ordinary recursion and simple cases" in {
     val expectedProfit = CountedMaxProfitDay(1, 2, 2)
-    assert(findMaxProfitDays(defaultDailyPricing) == expectedProfit)
+    assert(findMaxProfitDay(defaultDailyPricing) == expectedProfit)
   }
 
   it should "throw StackOverflow exception for max profit days search in case of ordinary recursion and more complex search tree" in {
     assertThrows[StackOverflowError] {
-      findMaxProfitDays(anotherDailyPricing)
+      findMaxProfitDay(anotherDailyPricing)
     }
   }
 

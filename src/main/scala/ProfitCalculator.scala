@@ -7,44 +7,42 @@ import scala.annotation.tailrec
 */
 object ProfitCalculator extends App {
   def getBuyDay(dailyPrices: List[PurchaseDay]) : Int = {
-    getMaxProfitDays(dailyPrices).purchaseDay
+    getMaxProfitDay(dailyPrices).purchaseDay
   }
 
   def getSellDay(dailyPrices: List[PurchaseDay]): Int = {
-    getMaxProfitDays(dailyPrices).sellDay
+    getMaxProfitDay(dailyPrices).sellDay
   }
 
-  def getMaxProfitDays(dailyPricing: List[PurchaseDay]): CountedMaxProfitDay = {
-    countProfitability(dailyPricing, List.empty).maxBy(_.profit)
+  def getMaxProfitDay(dailyPricing: List[PurchaseDay]): CountedMaxProfitDay = {
+    countDailyProfitability(dailyPricing.sortBy(dailyPrice => dailyPrice.price), List.empty).maxBy(_.profit)
   }
 
   @tailrec
   /*
     It is not optimal to go through the list over and over again, especially if the amount of data is big.
-    I am sure there must be better searching algorithm that would be possible to implement using tails rec,
+    I am sure there must be better searching algorithm that would be possible to implement using tail recursion,
     but I should have relied on what I know so far, so let it be :)
   */
-  def countProfitability(dailyPricing: List[PurchaseDay], sortedMaxPricesByDay: List[CountedMaxProfitDay]): List[CountedMaxProfitDay] = {
-    if (dailyPricing.length < 2) sortedMaxPricesByDay
+  def countDailyProfitability(sortedByPriceDailyPricing: List[PurchaseDay], calculatedDailyProfit: List[CountedMaxProfitDay]): List[CountedMaxProfitDay] = {
+    if (sortedByPriceDailyPricing.length < 2) calculatedDailyProfit
     else {
-      val sortedDailyPrices = dailyPricing.sortBy(dailyPrice => dailyPrice.price)
-      val minPriceDay = sortedDailyPrices.head
-
-      val dailyProfit = dailyPricing.filter(dailyPrice => dailyPrice.purchaseDay > minPriceDay.purchaseDay )
+      val minPriceDay = sortedByPriceDailyPricing.head
+      val dailyProfit = sortedByPriceDailyPricing.filter(dailyPrice => dailyPrice.purchaseDay > minPriceDay.purchaseDay )
         .map (dailyPrice =>
           CountedMaxProfitDay(minPriceDay.purchaseDay, dailyPrice.purchaseDay, dailyPrice.price - minPriceDay.price)
         )
 
-      countProfitability(sortedDailyPrices.takeRight(dailyPricing.length - 1), sortedMaxPricesByDay ++ dailyProfit)
+      countDailyProfitability(sortedByPriceDailyPricing.takeRight(sortedByPriceDailyPricing.length - 1), calculatedDailyProfit ++ dailyProfit)
     }
   }
 
   /*
-    Note, this one uses ordinary recursion, which will cause StackOverflow in case of Scala if
+    Note, this one uses ordinary recursion, which will cause StackOverflow if
     it is needed to traverse the tree almost till the leaf nodes.
-    This is due to limited memory resources for storing each result separately.
+    This is due to limited memory resources allocated in Scala for storing each result separately.
   */
-  def findMaxProfitDays(dailyPricing: List[PurchaseDay]): CountedMaxProfitDay = {
+  def findMaxProfitDay(dailyPricing: List[PurchaseDay]): CountedMaxProfitDay = {
     val maxPriceDay = dailyPricing.maxBy(_.price)
     val minPriceDay = dailyPricing.minBy(_.price)
     val maxProfitDays = CountedMaxProfitDay(minPriceDay.purchaseDay, maxPriceDay.purchaseDay, maxPriceDay.price - minPriceDay.price)
@@ -52,8 +50,8 @@ object ProfitCalculator extends App {
     if (maxProfitDays.sellDay > maxProfitDays.purchaseDay) maxProfitDays
     else if (dailyPricing.length <= 2) CountedMaxProfitDay(minPriceDay.purchaseDay, maxPriceDay.purchaseDay, maxPriceDay.price - minPriceDay.price)
     else {
-      val rightMaxProfit = findMaxProfitDays(dailyPricing.take(maxPriceDay.purchaseDay))
-      val leftMaxProfit = findMaxProfitDays(dailyPricing.drop(maxPriceDay.purchaseDay))
+      val rightMaxProfit = findMaxProfitDay(dailyPricing.take(maxPriceDay.purchaseDay))
+      val leftMaxProfit = findMaxProfitDay(dailyPricing.drop(maxPriceDay.purchaseDay))
 
       Set(rightMaxProfit, leftMaxProfit).maxBy(_.profit)
     }
